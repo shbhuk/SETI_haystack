@@ -1,0 +1,19 @@
+[Haystack]
+# Please use the default units for the observation parameters and haystack boundaries
+
+# Upper Bound for distance dimension. Lower bound is assumed to be zero. [Light year]
+max_distance = 32600 
+
+# Minimum EIRP to be sensitive to. Defines the bound for the sensitivity dimension. [Watts]
+min_eirp = 1e13
+
+# Bounds for the transmission frequency dimension [Hertz]
+min_central_freq = 10e6
+max_central_freq = 115e9
+
+# Maximum transmission bandwidth for haystack boundary. Cannot be greater than min_central_freq. [Hertz]
+max_trans_bw = 20e6
+
+# Upper Bound for repetition rate dimension. Lower bound is assumed to be zero (continuous transmission). [years]
+max_rep_period = 1
+
