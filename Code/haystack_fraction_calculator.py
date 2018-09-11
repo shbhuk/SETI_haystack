@@ -27,7 +27,7 @@ home = sys.path[0]
 
 
 haystack_boundary = os.path.join(home,'Haystack_boundaries.txt')
-search_parameters = os.path.join(home,'Tingay2018.txt')
+search_parameters = os.path.join(home,'Search_parameters.txt')
 
 haystack_config =  configparser.ConfigParser()
 haystack_config.read(haystack_boundary)
