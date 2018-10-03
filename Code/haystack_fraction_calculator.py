@@ -28,6 +28,7 @@ home = sys.path[0]
 
 haystack_boundary = os.path.join(home,'Haystack_boundaries.txt')
 search_parameters = os.path.join(home,'Search_parameters.txt')
+#search_parameters = os.path.join(home,'Tingay2018.txt')
 
 haystack_config =  configparser.ConfigParser()
 haystack_config.read(haystack_boundary)
@@ -170,6 +171,7 @@ if omega > 4*np.pi:
 f_sa = omega / (4*np.pi)
 
 
+
 print('Observer Sensitivity = {:.3E}'.format(Survey_sensitivity ))
 print('Channel BW = {:.3E} : Instrument BW = {:.3E}'.format(c,i))
 print('Time on Target = {:.3E}'.format(total_scan))
@@ -177,14 +179,14 @@ print('Beam Width = {:.3E} arcminutes\n'.format(diff_angle * 180 * 60/np.pi))
 print('d_max = {:.3E} : t_max = {:.3E} f_max = {:.3E} : f_min = {:.3E} : Max. Rep Time = {:.3E}'.format(dmax.to(u.lyr),tmax,f_max,f_min,t_upper))
 print('EIRP for sensitivity max = {:.3E}\n'.format(P_min))
 
-'''
+
 print('Region 1 = {:.5E}'.format(V1))
 print('Region 2 = {:.5E}'.format(V2))
 print('Region 3 = {:.5E}'.format(V3))
 print('Region 4 = {:.5E}'.format(V4))
 print('Region 5 = {:.5E}'.format(V5))
 print('Region 6 = {:.5E}'.format(V6))
-'''
+
 
 # Therefore V_scanned = summation (V1 - V6) times the solid angle
 V_scanned_6d = ( V1 + V2 + V3 + V4 + V5 + V6 ) * omega # To account for solid angle fraction (implicit in distance dimension)
@@ -192,6 +194,7 @@ V_scanned_6d = ( V1 + V2 + V3 + V4 + V5 + V6 ) * omega # To account for solid an
 # In the frequency, sensitivity, transmitter BW and distance space  (6d); what is the total volume that can be covered?
 V_total_6d = ((dmax**5 / (5 * P0)) * (tmax) * np.abs(f_max - f_min)).to(u.Hz**2 * u.m**5 / u.W)
 V_total_6d *= 4 * np.pi # To account for solid angle fraction (implicit in distance dimension)
+
 
 f_6d = V_scanned_6d / V_total_6d
 
@@ -204,9 +207,12 @@ V_total_8d = V_total_6d * (t_upper.to(u.s))
 f_8d = V_scanned_8d / V_total_8d
 f_n8d = f_8d * n
 
+
 print('Volume scanned in frequency (1), transmitter BW (1), distance (3), sensitivity (1), repetition rate (1) and polarization (1) dimensions (8d) for {} search/es = {:.5E}'.format(1,V_scanned_8d))
 print('Volume scanned in frequency (1), transmitter BW (1), distance (3), sensitivity (1), repetition rate (1) and polarization (1) dimensions (8d) for {} search/es = {:.5E}'.format(int(n),V_scanned_8d*n))
+print('Total haystack volume in this 8d space = {:.5E}\n'.format(V_total_8d))
 
-print('\nTotal haystack volume in this 8d space = {:.5E}'.format(V_total_8d))
+
+#print('Fraction of 6D Volume = {:.5E}'.format(f_6d))
 print('Total fraction of 8D volume for 1 search = {:.5E}'.format(f_8d))
 print('Total fraction of 8D volume for {} search/es = {:.5E}'.format(n,f_n8d))
