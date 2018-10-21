@@ -28,7 +28,7 @@ home = sys.path[0]
 
 haystack_boundary = os.path.join(home,'Haystack_boundaries.txt')
 search_parameters = os.path.join(home,'Search_parameters.txt')
-#search_parameters = os.path.join(home,'Tingay2018.txt')
+
 
 haystack_config =  configparser.ConfigParser()
 haystack_config.read(haystack_boundary)
@@ -50,18 +50,21 @@ c = float(search_config['Search']['Channel_BW']) * u.Hz # [Hertz]
 # Survey sensitivity 
 Survey_sensitivity = float(search_config['Search']['Survey_sensitivity']) * u.Jy # [Jansky]
 
-# The telescope diameter is used to calculate the beam width. Assuming uniformity and diffraction limited.
-diam_telescope = float(search_config['Search']['Telescope_diameter']) * u.m # [meters]
-
 # Max and minimum frequency in the instrument band
 band_max = float(search_config['Search']['Max_receiver_band']) * u.Hz # [Hertz]
 band_min = float(search_config['Search']['Min_receiver_band']) * u.Hz # [Hertz]
 
+# Fraction of polarization. 0.5 or 1
+fpol = float(search_config['Search']['Polarization_fraction'])
+
 # Number of observations (targets)
 n = float(search_config['Search']['No_of_targets'])
 
-# Fraction of polarization. 0.5 or 1
-fpol = float(search_config['Search']['Polarization_fraction'])
+# The telescope diameter is used to calculate the beam width. Assuming uniformity and diffraction limited.
+diam_telescope = float(search_config['Search']['Telescope_diameter']) * u.m #[meters]
+
+# Total Sky Coverage [sq. degrees]. If > 0, then the number of observations, and the telescope diameter are ignored. 
+sky_coverage = float(search_config['Search']['Sky_coverage']) #[Sq. Degrees]
 
 #############################
 # Haystack Bounds / Constants
@@ -85,6 +88,9 @@ t_upper = float(haystack_config['Haystack']['Max_rep_period']) * u.yr # [years]
 # Upper Bound for distance dimension. Lower bound is assumed to be zero.
 dmax = float(haystack_config['Haystack']['Max_distance']) * u.lyr # [light year]
 
+# Upper Bound for Solid Angle. Lower bound is assumed to be zero.
+omega_max = float(haystack_config['Haystack']['Omega_max']) # [steradian]
+
 
 
 #####################
@@ -105,6 +111,28 @@ s = 1 / phi
 P0 = P_min / (4*np.pi)
 
 ####################
+
+if sky_coverage <= 0:
+    print('Calculating sky coverage values from diffraction limited telescope aperture x no. of targets')
+    # Calculate ratio of solid angle of beam to 4pi
+    diff_angle = 1.22 * mean_band_wavelength/diam_telescope # Airy ring telescope
+    omega = 2*np.pi* (1-np.cos(diff_angle.value/2)) # Solid Angle   
+    omega *= n
+    
+    # Preventing outrageous values from hacking the fractions!
+    if omega > 4*np.pi:
+        omega = 4*np.pi
+else:
+    omega = sky_coverage / ((180/np.pi)**2)
+    print('Using given sky coverage values')
+
+
+f_sa = omega / (4*np.pi)
+
+
+######################
+
+
 
 # Conditional statements for the bounds of the 6d integral
 tcrit_dmax3 = (c*P0*P0*s*s / (dmax**4)).to(u.Hz)
@@ -149,6 +177,7 @@ V4 = V4.to(u.Hz**2 * u.m**5 / u.W)
 
 V5a = (1/210) * ((42*(dmax**5)*i*(t5mid-i))/P0 + (3*(5*(dmax**7)*np.sqrt(c*i) - 7*c*P0*s*dmax**5)*(i*i - t5mid*t5mid))/(c*P0*P0*s))
 V5b = (1/210) * 4 * s * (c*i)**(5/4) * (((P0*s)/(t5mid*t5upper))**(3/2)) * (-2*i*t5mid**(3/2) - 21*t5mid**(3/2)*t5upper + 2*i*t5upper**(3/2) + 21*t5mid*t5upper**(3/2))
+V5b = (1/210) * 4 * s * (c*i)**(5/4) * (((P0*s)/(t5mid*t5upper))**(3/2)) * (2*i*(t5upper**(3/2) - t5mid**(3/2)) + 21*t5mid*t5upper*(t5upper**(1/2) - t5mid**(1/2)))
         
 V5 = V5a + V5b
 V5 = V5.to(u.Hz**2 * u.m**5 / u.W)
@@ -159,42 +188,28 @@ V6 = V6.to(u.Hz**2 * u.m**5 / u.W)
 
 
 
-# Calculate ratio of solid angle of beam to 4pi
-diff_angle = 1.22 * mean_band_wavelength/diam_telescope # Airy ring telescope
-omega = 2*np.pi* (1-np.cos(diff_angle.value/2)) # Solid Angle
-
-# Preventing outrageous values from hacking the fractions!
-if omega > 4*np.pi:
-    omega = 4*np.pi
-
-
-f_sa = omega / (4*np.pi)
-
-
-
 print('Observer Sensitivity = {:.3E}'.format(Survey_sensitivity ))
 print('Channel BW = {:.3E} : Instrument BW = {:.3E}'.format(c,i))
 print('Time on Target = {:.3E}'.format(total_scan))
-print('Beam Width = {:.3E} arcminutes\n'.format(diff_angle * 180 * 60/np.pi))
+print('Sky Coverage = {:.3E} sq. degrees \n'.format(omega * (180/np.pi)**2))
 print('d_max = {:.3E} : t_max = {:.3E} f_max = {:.3E} : f_min = {:.3E} : Max. Rep Time = {:.3E}'.format(dmax.to(u.lyr),tmax,f_max,f_min,t_upper))
 print('EIRP for sensitivity max = {:.3E}\n'.format(P_min))
 
-
+'''
 print('Region 1 = {:.5E}'.format(V1))
 print('Region 2 = {:.5E}'.format(V2))
 print('Region 3 = {:.5E}'.format(V3))
 print('Region 4 = {:.5E}'.format(V4))
 print('Region 5 = {:.5E}'.format(V5))
 print('Region 6 = {:.5E}'.format(V6))
-
+'''
 
 # Therefore V_scanned = summation (V1 - V6) times the solid angle
 V_scanned_6d = ( V1 + V2 + V3 + V4 + V5 + V6 ) * omega # To account for solid angle fraction (implicit in distance dimension)
 
 # In the frequency, sensitivity, transmitter BW and distance space  (6d); what is the total volume that can be covered?
 V_total_6d = ((dmax**5 / (5 * P0)) * (tmax) * np.abs(f_max - f_min)).to(u.Hz**2 * u.m**5 / u.W)
-V_total_6d *= 4 * np.pi # To account for solid angle fraction (implicit in distance dimension)
-
+V_total_6d *=  omega_max # To account for solid angle fraction (implicit in distance dimension)
 
 f_6d = V_scanned_6d / V_total_6d
 
@@ -205,14 +220,10 @@ V_scanned_8d = V_scanned_6d * (total_scan.to(u.s)) * fpol
 V_total_8d = V_total_6d * (t_upper.to(u.s))
 
 f_8d = V_scanned_8d / V_total_8d
-f_n8d = f_8d * n
 
 
-print('Volume scanned in frequency (1), transmitter BW (1), distance (3), sensitivity (1), repetition rate (1) and polarization (1) dimensions (8d) for {} search/es = {:.5E}'.format(1,V_scanned_8d))
-print('Volume scanned in frequency (1), transmitter BW (1), distance (3), sensitivity (1), repetition rate (1) and polarization (1) dimensions (8d) for {} search/es = {:.5E}'.format(int(n),V_scanned_8d*n))
-print('Total haystack volume in this 8d space = {:.5E}\n'.format(V_total_8d))
 
+print('\nVolume scanned in frequency (1), transmitter BW (1), distance (3), sensitivity (1), repetition rate (1) and polarization (1) dimensions (8d) for search = {:.5E}'.format(V_scanned_8d))
+print('Total haystack volume in this 8d space = {:.5E}'.format(V_total_8d))
+print('Total fraction of 8D volume for search = {:.5E}'.format(f_8d))
 
-#print('Fraction of 6D Volume = {:.5E}'.format(f_6d))
-print('Total fraction of 8D volume for 1 search = {:.5E}'.format(f_8d))
-print('Total fraction of 8D volume for {} search/es = {:.5E}'.format(n,f_n8d))

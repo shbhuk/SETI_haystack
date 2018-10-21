@@ -17,3 +17,5 @@ max_trans_bw = 20e6
 # Upper Bound for repetition rate dimension. Lower bound is assumed to be zero (continuous transmission). [years]
 max_rep_period = 1
 
+# Upper Bound for Solid Angle. Lower bound is assumed to be zero. steradian. Default value is 4pi
+omega_max = 12.566370614359172
