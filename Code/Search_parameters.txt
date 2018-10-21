@@ -4,21 +4,24 @@
 # Total integration time for observation [seconds]
 time_on_target = 300
 
-# Number of observations (targets)
-no_of_targets = 692
-
-# The telescope diameter is used to calculate the beam width. Assuming uniformity and diffraction limited. [meters]
-telescope_diameter = 100
-
 # Max and minimum frequency in the instrument/receiver band [Hertz]
 max_receiver_band = 1.9e9
 min_receiver_band = 1.1e9
 
 # Survey sensitivity [Jansky]
-survey_sensitivity = 425
+survey_sensitivity = 17
 
 # Channel bandwidth (spectral resolution) [Hz]
 channel_bw = 2.7
 
 # Fraction of polarization. 0.5 or 1
 polarization_fraction = 1
+
+# Number of observations (targets)
+no_of_targets = 692
+
+# The telescope diameter is used to calculate the beam width. Assuming uniformity and diffraction limited. [meters]
+telescope_diameter = 100
+
+# Total Sky Coverage [sq. degrees]. If > 0, then the number of observations, and the telescope diameter are ignored. 
+sky_coverage = 10.6
