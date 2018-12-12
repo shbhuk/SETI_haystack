@@ -46,7 +46,6 @@ def vol8d(home='', hayfile='Haystack_boundaries.txt', searchfile='Search_paramet
     # User observation  parameters
     ##############################
 
-
     # Total integration time for observation
     total_scan = float(search_config['Search']['Time_on_Target']) * u.s # [seconds]
 
@@ -76,7 +75,6 @@ def vol8d(home='', hayfile='Haystack_boundaries.txt', searchfile='Search_paramet
     # Haystack Bounds / Constants
     #############################
 
-
     # Minimum EIRP to be sensitive to. Defines the bound for the sensitivity dimension.
     P_min = float(haystack_config['Haystack']['Min_EIRP']) * u.W  # [Watts]
 
@@ -97,10 +95,7 @@ def vol8d(home='', hayfile='Haystack_boundaries.txt', searchfile='Search_paramet
     # Upper Bound for Solid Angle. Lower bound is assumed to be zero.
     omega_max = float(haystack_config['Haystack']['Omega_max']) # [steradian]
 
-
-
     #####################
-
 
     # Central receiver frequency
     mean_band_frequency = (band_max + band_min)/2 # Mean frequency of instrument band. Eg for GBT L Band it is about ~1.5 GHz
@@ -137,8 +132,6 @@ def vol8d(home='', hayfile='Haystack_boundaries.txt', searchfile='Search_paramet
 
 
     ######################
-
-
 
     # Conditional statements for the bounds of the 6d integral
     tcrit_dmax3 = (c*P0*P0*s*s / (dmax**4)).to(u.Hz)
@@ -233,8 +226,8 @@ def vol8d(home='', hayfile='Haystack_boundaries.txt', searchfile='Search_paramet
     print('Total haystack volume in this 8d space = {:.5E}'.format(V_total_8d))
     print('Total fraction of 8D volume for search = {:.5E}'.format(f_8d))
 
-    # return the last 2 printed values
-    return V_total_8d, f_8d
+    # return the last 3 printed values
+    return f_8d, V_scanned_8d, V_total_8d
 
 
 if __name__ == "__main__":
